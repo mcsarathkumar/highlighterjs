@@ -17,12 +17,12 @@
 
     <div>
         <ul>
-            <li>
-                <div>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aliquid, atque corporis dignissimos
+            <li id="li">
+                <div class="div">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aliquid, atque corporis dignissimos
                     ducimus error esse in incidunt iure necessitatibus nisi placeat repellat repudiandae saepe similique
                     sit temporibus voluptatum? Placeat, tempore.
                 </div>
-                <div>A architecto assumenda cupiditate deserunt dolor eaque eius eligendi, ex expedita id illum
+                <div class="div">A architecto assumenda cupiditate deserunt dolor eaque eius eligendi, ex expedita id illum
                     incidunt, iste iure laborum maxime nisi nulla odit optio qui quibusdam quidem rem repellat
                     reprehenderit rerum, sequi?
                 </div>
@@ -259,15 +259,17 @@
 <script defer>
     document.querySelector('#searchTerm').addEventListener('keyup', () => {
         const searchTerm = document.getElementById('searchTerm')?.value;
-        new Highlight({
+        $hljs.highlight({
             searchTerm,
             selector: '#search',
-            highlightClass: 'highLight',
+            highlightClass: 'highLight lol',
+            caseSensitive: true,
             highlightStyle: {
                 'color': 'lightblue',
                 'font-family': 'verdana',
                 'font-size': '20px'
-            }
+            },
+            debounceTime: 50
         });
     });
 </script>
