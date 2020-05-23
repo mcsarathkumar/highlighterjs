@@ -5,12 +5,12 @@ interface highlightInput {
     highlightStyle?: object;
     caseSensitive?: boolean;
     debounceTime?: number;
+    allowSpecialCharacters?: boolean;
 }
 
 const highlightClassIdentifier = 'hlJS' + Math.round(Math.random() * 1000);
 
 class HighlightJS implements highlightInput {
-    continuousKeyActivity = false;
     previousKeyStrokeMilliSecs = 0;
     currentSearchTerm = '';
     selector = '';
@@ -19,15 +19,33 @@ class HighlightJS implements highlightInput {
     regExpValue?: RegExp;
     caseSensitive = false;
     debounceTime = 500;
+    shortcutEventListener: any;
+    isShortcutEventListener = false;
     _count = 0;
+    allowSpecialCharacters = false;
     validInputData = true;
-    specialCharacters = '\\`~!@#$%^&*()_-=+[{]}\\|;:\'",<.>/?';
+    specialCharacters = '\\`~!@#$%^&*()_-=+[{]}\\|;:\'"<>/?.';
     charactersToBeSanitized = ['\\', '.', '?', '+', '^', '*', '{', '}', '$', '[', ']', '|', '-', '=', '!', '(', ')', '_'];
 
     constructor() {}
 
     get count() {
         return this._count;
+    }
+
+    disableBrowserShortcutForFind(disable = true) {
+        if (disable && !this.isShortcutEventListener) {
+            this.shortcutEventListener = window.addEventListener('keydown', function (event) {
+                if (event.code === 'F3' || ((event.ctrlKey || event.metaKey) && event.code === 'KeyF')) {
+                    event.preventDefault();
+                }
+            });
+            this.isShortcutEventListener = true;
+        } else {
+            if (this.isShortcutEventListener) {
+                window.removeEventListener('keydown', this.shortcutEventListener);
+            }
+        }
     }
 
     highlight(inputObject: highlightInput, recallAfterDebounce = false) {
@@ -38,6 +56,10 @@ class HighlightJS implements highlightInput {
         if (inputObject.selector === undefined) {
             this.validInputData = false;
             console.error('Target reference is missing');
+        }
+        if (inputObject.allowSpecialCharacters !== undefined && inputObject.allowSpecialCharacters) {
+            // inputObject.allowSpecialCharacters = true; - to be the value
+            inputObject.allowSpecialCharacters = false;
         }
         if (this.validInputData) {
             if (!recallAfterDebounce) {
@@ -55,7 +77,6 @@ class HighlightJS implements highlightInput {
                     this.init(inputObject);
                 }
             } else {
-                this.continuousKeyActivity = true;
                 setTimeout(() => {
                     this.highlight(inputObject, true);
                 }, this.debounceTime);
@@ -64,15 +85,16 @@ class HighlightJS implements highlightInput {
     }
 
     init(inputObject: highlightInput) {
-        this.selector = inputObject.selector;
+        if (inputObject.selector !== undefined) {
+            this.selector = (inputObject.selector.length > 1 && inputObject.selector[0] === '#') ? inputObject.selector : 'body';
+        }
         const querySelector: HTMLElement | null = document.querySelector(this.selector);
         if (querySelector !== null) {
-            const sourceData: HTMLElement = querySelector;
+            const sourceData = querySelector;
             this.resetContent(sourceData);
             if (this.searchTerm !== '') {
                 const nodes = sourceData;
                 this.highlightTag = document.createElement('span');
-
                 this.highlightTag.classList.add(highlightClassIdentifier);
                 if (inputObject.highlightClass !== undefined) {
                     const classData = inputObject.highlightClass.split(' ');
@@ -88,7 +110,7 @@ class HighlightJS implements highlightInput {
                         this.highlightTag.style[i] = inputObject.highlightStyle[i] as string;
                     }
                 }
-                if (inputObject.caseSensitive !== undefined && inputObject.caseSensitive === true) {
+                if (inputObject.caseSensitive !== undefined && inputObject.caseSensitive) {
                     this.caseSensitive = true;
                 }
                 this.highlightTag.textContent = this.searchTerm;
@@ -110,15 +132,17 @@ class HighlightJS implements highlightInput {
 
     removeDuplicateCharacters(string: string) {
         return string.split('').filter((item, pos, self) => {
-            return self.indexOf(item) == pos;
+            return self.indexOf(item) === pos;
         }).join('');
     }
 
     sanitizeRegExp(searchTerm: string) {
-        searchTerm = this.removeDuplicateCharacters(searchTerm);
+        console.log(this.searchTerm);
         let regExpData: any = searchTerm;
+        searchTerm = this.removeDuplicateCharacters(searchTerm);
         let flags = this.caseSensitive ? 'g' : 'gi';
-        const vulnerableCharacters = [];
+
+        /*const vulnerableCharacters = [];
         for (let j = 0, j1 = this.charactersToBeSanitized.length - 1; j <= this.charactersToBeSanitized.length / 2; j++, j1--) {
             if (j1 < j) {
                 break;
@@ -127,11 +151,11 @@ class HighlightJS implements highlightInput {
                 if (i1 < i) {
                     break;
                 }
-                if (this.charactersToBeSanitized[j] === searchTerm[i] || this.charactersToBeSanitized[j1] === searchTerm[i1]) {
-                    if (this.charactersToBeSanitized[j] === searchTerm[i]) {
+                if (this.charactersToBeSanitized[j] === searchTerm[i] || this.charactersToBeSanitized[j1] === searchTerm[i] || this.charactersToBeSanitized[j] === searchTerm[i1] || this.charactersToBeSanitized[j1] === searchTerm[i1]) {
+                    if (this.charactersToBeSanitized[j] === searchTerm[i] || this.charactersToBeSanitized[j1] === searchTerm[i]) {
                         vulnerableCharacters.push(searchTerm[i]);
                     }
-                    if (this.charactersToBeSanitized[j1] === searchTerm[i1]) {
+                    if (this.charactersToBeSanitized[j] === searchTerm[i1] || this.charactersToBeSanitized[j1] === searchTerm[i1]) {
                         vulnerableCharacters.push(searchTerm[i1]);
                     }
                     break;
@@ -144,6 +168,28 @@ class HighlightJS implements highlightInput {
                 regExpData = regExpData.join('\\' + i);
             }
         }
+        */
+
+        for (let j = 0, j1 = this.specialCharacters.length - 1; j <= this.specialCharacters.length / 2; j++, j1--) {
+            if (j1 < j) {
+                break;
+            }
+            for (let i = 0, i1 = searchTerm.length - 1; i <= searchTerm.length / 2; i++, i1--) {
+                if (i1 < i) {
+                    break;
+                }
+                if (this.specialCharacters[j] === searchTerm[i] || this.specialCharacters[j1] === searchTerm[i] || this.specialCharacters[j] === searchTerm[i1] || this.specialCharacters[j1] === searchTerm[i1]) {
+                    if (this.specialCharacters[j] === searchTerm[i] || this.specialCharacters[j1] === searchTerm[i]) {
+                        regExpData.replace(new RegExp('\\' + searchTerm[i]),'');
+                    }
+                    if (this.specialCharacters[j] === searchTerm[i1] || this.specialCharacters[j1] === searchTerm[i1]) {
+                        regExpData.replace(new RegExp('\\' + searchTerm[i1]),'');
+                    }
+                    break;
+                }
+            }
+        }
+
         return new RegExp(regExpData, flags);
     }
 
