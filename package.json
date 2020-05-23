@@ -1,0 +1,24 @@
+{
+  "name": "highlightjs",
+  "version": "1.0.0",
+  "description": "Enable customized search and highlight in your webpage in a line of code without any dependency",
+  "main": "./src/highlight.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+	"build": "tsc -b tsconfig.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcsarathkumar/highlightjs.git"
+  },
+  "keywords": [
+    "highlight",
+    "search"
+  ],
+  "author": "mcsarathkumar",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mcsarathkumar/highlightjs/issues"
+  },
+  "homepage": "https://github.com/mcsarathkumar/highlightjs#readme"
+}
