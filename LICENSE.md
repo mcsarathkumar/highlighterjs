@@ -1,4 +1,4 @@
-MIT License
+HighlightJS is licensed under MIT License
 
 Copyright (c) 2020 mcsarathkumar
 
