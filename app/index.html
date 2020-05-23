@@ -255,8 +255,9 @@
 <br>
 <input type="text" id="searchTerm">
 <button type="button">Change</button>
-<script src="app.js" defer></script>
-<script defer>
+<script src="../dist/highlight.js"></script>
+<script>
+    $hljs.disableBrowserShortcutForFind();
     document.querySelector('#searchTerm').addEventListener('keyup', () => {
         const searchTerm = document.getElementById('searchTerm')?.value;
         $hljs.highlight({
