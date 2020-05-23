@@ -17,14 +17,14 @@ var HighlightJS = /** @class */ (function () {
         this.currentSearchTerm = '';
         this.selector = '';
         this.searchTerm = '';
+        this.sanitizedSearchTerm = '';
+        this.highlightTag = null;
         this.caseSensitive = false;
-        this.debounceTime = 500;
+        this.debounceTime = 50;
         this.isShortcutEventListener = false;
         this._count = 0;
-        this.allowSpecialCharacters = false;
         this.validInputData = true;
-        this.specialCharacters = '\\`~!@#$%^&*()_-=+[{]}\\|;:\'"<>/?.';
-        this.charactersToBeSanitized = ['\\', '.', '?', '+', '^', '*', '{', '}', '$', '[', ']', '|', '-', '=', '!', '(', ')', '_'];
+        this.specialCharacters = '`~!@#$%^&*()_-=+[{]}\\|;:\'"<>/?.';
     }
     Object.defineProperty(HighlightJS.prototype, "count", {
         get: function () {
@@ -46,6 +46,7 @@ var HighlightJS = /** @class */ (function () {
         else {
             if (this.isShortcutEventListener) {
                 window.removeEventListener('keydown', this.shortcutEventListener);
+                this.isShortcutEventListener = false;
             }
         }
     };
@@ -59,10 +60,6 @@ var HighlightJS = /** @class */ (function () {
         if (inputObject.selector === undefined) {
             this.validInputData = false;
             console.error('Target reference is missing');
-        }
-        if (inputObject.allowSpecialCharacters !== undefined && inputObject.allowSpecialCharacters) {
-            // inputObject.allowSpecialCharacters = true; - to be the value
-            inputObject.allowSpecialCharacters = false;
         }
         if (this.validInputData) {
             if (!recallAfterDebounce) {
@@ -134,15 +131,29 @@ var HighlightJS = /** @class */ (function () {
                         finally { if (e_2) throw e_2.error; }
                     }
                 }
+                if (inputObject.highlightStyle === undefined && inputObject.highlightClass === undefined) {
+                    this.highlightTag.style.backgroundColor = '#FFF77D';
+                }
                 if (inputObject.caseSensitive !== undefined && inputObject.caseSensitive) {
                     this.caseSensitive = true;
                 }
-                this.highlightTag.textContent = this.searchTerm;
-                this.regExpValue = this.sanitizeRegExp(this.searchTerm);
+                this.sanitizeSearchTerm();
                 this._count = 0;
                 this.currentNode(nodes);
             }
         }
+    };
+    HighlightJS.prototype.sanitizeSearchTerm = function () {
+        var finalString = '';
+        for (var i = 0; i < this.searchTerm.length; i++) {
+            for (var j = 0; j < this.specialCharacters.length; j++) {
+                if (this.searchTerm[i] === this.specialCharacters[j]) {
+                    finalString += '\\';
+                }
+            }
+            finalString += this.searchTerm[i];
+        }
+        this.sanitizedSearchTerm = finalString;
     };
     HighlightJS.prototype.currentNode = function (nodes) {
         var e_3, _a;
@@ -163,86 +174,31 @@ var HighlightJS = /** @class */ (function () {
         }
         this.highlightTagContents(nodes);
     };
-    HighlightJS.prototype.removeDuplicateCharacters = function (string) {
-        return string.split('').filter(function (item, pos, self) {
-            return self.indexOf(item) === pos;
-        }).join('');
-    };
-    HighlightJS.prototype.sanitizeRegExp = function (searchTerm) {
-        console.log(this.searchTerm);
-        var regExpData = searchTerm;
-        searchTerm = this.removeDuplicateCharacters(searchTerm);
-        var flags = this.caseSensitive ? 'g' : 'gi';
-        /*const vulnerableCharacters = [];
-        for (let j = 0, j1 = this.charactersToBeSanitized.length - 1; j <= this.charactersToBeSanitized.length / 2; j++, j1--) {
-            if (j1 < j) {
-                break;
-            }
-            for (let i = 0, i1 = searchTerm.length - 1; i <= searchTerm.length / 2; i++, i1--) {
-                if (i1 < i) {
-                    break;
-                }
-                if (this.charactersToBeSanitized[j] === searchTerm[i] || this.charactersToBeSanitized[j1] === searchTerm[i] || this.charactersToBeSanitized[j] === searchTerm[i1] || this.charactersToBeSanitized[j1] === searchTerm[i1]) {
-                    if (this.charactersToBeSanitized[j] === searchTerm[i] || this.charactersToBeSanitized[j1] === searchTerm[i]) {
-                        vulnerableCharacters.push(searchTerm[i]);
-                    }
-                    if (this.charactersToBeSanitized[j] === searchTerm[i1] || this.charactersToBeSanitized[j1] === searchTerm[i1]) {
-                        vulnerableCharacters.push(searchTerm[i1]);
-                    }
-                    break;
-                }
-            }
-        }
-        if (vulnerableCharacters.length > 0) {
-            for (const i of vulnerableCharacters) {
-                regExpData = regExpData.split(new RegExp('\\' + i));
-                regExpData = regExpData.join('\\' + i);
-            }
-        }
-        */
-        for (var j = 0, j1 = this.specialCharacters.length - 1; j <= this.specialCharacters.length / 2; j++, j1--) {
-            if (j1 < j) {
-                break;
-            }
-            for (var i = 0, i1 = searchTerm.length - 1; i <= searchTerm.length / 2; i++, i1--) {
-                if (i1 < i) {
-                    break;
-                }
-                if (this.specialCharacters[j] === searchTerm[i] || this.specialCharacters[j1] === searchTerm[i] || this.specialCharacters[j] === searchTerm[i1] || this.specialCharacters[j1] === searchTerm[i1]) {
-                    if (this.specialCharacters[j] === searchTerm[i] || this.specialCharacters[j1] === searchTerm[i]) {
-                        regExpData.replace(new RegExp('\\' + searchTerm[i]), '');
-                    }
-                    if (this.specialCharacters[j] === searchTerm[i1] || this.specialCharacters[j1] === searchTerm[i1]) {
-                        regExpData.replace(new RegExp('\\' + searchTerm[i1]), '');
-                    }
-                    break;
-                }
-            }
-        }
-        return new RegExp(regExpData, flags);
-    };
     HighlightJS.prototype.highlightTagContents = function (node) {
         var i;
         var nodeData = '';
         for (i = 0; i < node.childNodes.length; i++) {
             var n = node.childNodes[i];
-            if (n.nodeValue !== null) {
+            if (n.nodeValue !== null && this.highlightTag !== null) {
                 var textData = n.nodeValue;
                 while (i + 1 < node.childNodes.length && node.childNodes[i + 1].nodeValue !== null) {
                     textData += node.childNodes[++i].nodeValue;
                 }
-                var splitedData = textData.split(this.regExpValue);
-                if (splitedData.length > 1) {
-                    var data = '';
-                    var i_1 = void 0;
-                    for (i_1 = 0; i_1 < splitedData.length - 1; i_1++) {
-                        data += splitedData[i_1] + this.highlightTag.outerHTML;
-                        this._count++;
+                var searchResult = (this.caseSensitive) ? textData.search(this.sanitizedSearchTerm) : textData.toLowerCase().search(this.sanitizedSearchTerm.toLowerCase());
+                if (searchResult !== -1) {
+                    var finalString = '';
+                    var position = void 0;
+                    while (true) {
+                        position = (this.caseSensitive) ? textData.indexOf(this.searchTerm) : textData.toLowerCase().indexOf(this.searchTerm.toLowerCase());
+                        if (position === -1) {
+                            break;
+                        }
+                        this.highlightTag.textContent = textData.substr(position, this.searchTerm.length);
+                        finalString += textData.substr(0, position) + this.highlightTag.outerHTML;
+                        textData = textData.substr(position + this.searchTerm.length);
                     }
-                    if (i_1 > 0) {
-                        data += splitedData[i_1];
-                        nodeData += data;
-                    }
+                    finalString += textData;
+                    nodeData += finalString;
                 }
                 else {
                     nodeData += textData;
