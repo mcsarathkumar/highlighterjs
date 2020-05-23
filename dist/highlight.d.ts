@@ -5,7 +5,6 @@ interface highlightInput {
     highlightStyle?: object;
     caseSensitive?: boolean;
     debounceTime?: number;
-    allowSpecialCharacters?: boolean;
 }
 declare const highlightClassIdentifier: string;
 declare class HighlightJS implements highlightInput {
@@ -13,25 +12,22 @@ declare class HighlightJS implements highlightInput {
     currentSearchTerm: string;
     selector: string;
     searchTerm: string;
-    highlightTag: any;
-    regExpValue?: RegExp;
+    sanitizedSearchTerm: string;
+    highlightTag: HTMLSpanElement | null;
     caseSensitive: boolean;
     debounceTime: number;
     shortcutEventListener: any;
     isShortcutEventListener: boolean;
     _count: number;
-    allowSpecialCharacters: boolean;
     validInputData: boolean;
     specialCharacters: string;
-    charactersToBeSanitized: string[];
     constructor();
     get count(): number;
     disableBrowserShortcutForFind(disable?: boolean): void;
     highlight(inputObject: highlightInput, recallAfterDebounce?: boolean): void;
     init(inputObject: highlightInput): void;
+    sanitizeSearchTerm(): void;
     currentNode(nodes: any): void;
-    removeDuplicateCharacters(string: string): string;
-    sanitizeRegExp(searchTerm: string): RegExp;
     highlightTagContents(node: any): void;
     resetContent(sourceData: HTMLElement): void;
 }

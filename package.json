@@ -4,8 +4,9 @@
   "description": "Enable customized search and highlight in your webpage in a line of code without any dependency",
   "main": "./src/highlight.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-	"build": "tsc -b tsconfig.json"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsc -b -w tsconfig.json",
+    "build": "tsc -b tsconfig.json"
   },
   "repository": {
     "type": "git",
@@ -15,6 +16,7 @@
     "highlight",
     "search"
   ],
+  "dependencies": {},
   "author": "mcsarathkumar",
   "license": "MIT",
   "bugs": {
