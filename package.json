@@ -1,6 +1,6 @@
 {
   "name": "@mcsarathkumar/highlightjs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Enable customized search and highlight in your webpage in a line of code without any dependency",
   "main": "./src/highlight.ts",
   "scripts": {
@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/mcsarathkumar/highlightjs/issues"
   },
-  "homepage": "https://github.com/mcsarathkumar/highlightjs#readme"
+  "homepage": "https://github.com/mcsarathkumar/highlightjs#readme",
+  "publishConfig": {
+    "registry": ["https://npm.pkg.github.com/"]
+  }
 }
