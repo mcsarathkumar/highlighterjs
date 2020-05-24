@@ -10,6 +10,15 @@ var __values = (this && this.__values) || function(o) {
     };
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
+function isUndefined(params) {
+    return params === undefined;
+}
+function isNull(params) {
+    return params === null;
+}
+function isEmpty(params) {
+    return isUndefined(params) || isNull(params);
+}
 var highlightClassIdentifier = 'hlJS' + Math.round(Math.random() * 1000);
 var HighlightJS = /** @class */ (function () {
     function HighlightJS() {
@@ -27,45 +36,22 @@ var HighlightJS = /** @class */ (function () {
         this.specialCharacters = '`~!@#$%^&*()_-=+[{]}\\|;:\'"<>/?.';
     }
     Object.defineProperty(HighlightJS.prototype, "count", {
-        get: function () {
-            return this._count;
-        },
+        get: function () { return this._count; },
         enumerable: false,
         configurable: true
     });
-    HighlightJS.prototype.disableBrowserShortcutForFind = function (disable) {
-        if (disable === void 0) { disable = true; }
-        if (disable && !this.isShortcutEventListener) {
-            this.shortcutEventListener = window.addEventListener('keydown', function (event) {
-                if (event.code === 'F3' || ((event.ctrlKey || event.metaKey) && event.code === 'KeyF')) {
-                    event.preventDefault();
-                }
-            });
-            this.isShortcutEventListener = true;
-        }
-        else {
-            if (this.isShortcutEventListener) {
-                window.removeEventListener('keydown', this.shortcutEventListener);
-                this.isShortcutEventListener = false;
-            }
-        }
-    };
     HighlightJS.prototype.highlight = function (inputObject, recallAfterDebounce) {
         var _this = this;
         if (recallAfterDebounce === void 0) { recallAfterDebounce = false; }
-        if (inputObject.searchTerm === undefined) {
+        if (typeof inputObject.searchTerm !== 'string') {
             this.validInputData = false;
             console.error('Search Keyword is missing');
-        }
-        if (inputObject.selector === undefined) {
-            this.validInputData = false;
-            console.error('Target reference is missing');
         }
         if (this.validInputData) {
             if (!recallAfterDebounce) {
                 this.currentSearchTerm = inputObject.searchTerm;
             }
-            if (inputObject.debounceTime !== undefined) {
+            if (typeof inputObject.debounceTime === 'number') {
                 this.debounceTime = inputObject.debounceTime;
             }
             var currentMilliSec = new Date().getSeconds() * 1000 + new Date().getMilliseconds();
@@ -86,9 +72,7 @@ var HighlightJS = /** @class */ (function () {
     };
     HighlightJS.prototype.init = function (inputObject) {
         var e_1, _a, e_2, _b;
-        if (inputObject.selector !== undefined) {
-            this.selector = (inputObject.selector.length > 1 && inputObject.selector[0] === '#') ? inputObject.selector : 'body';
-        }
+        this.selector = (typeof inputObject.selector === 'string' && inputObject.selector.length > 1 && inputObject.selector[0] === '#') ? inputObject.selector : 'body';
         var querySelector = document.querySelector(this.selector);
         if (querySelector !== null) {
             var sourceData = querySelector;
@@ -97,7 +81,7 @@ var HighlightJS = /** @class */ (function () {
                 var nodes = sourceData;
                 this.highlightTag = document.createElement('span');
                 this.highlightTag.classList.add(highlightClassIdentifier);
-                if (inputObject.highlightClass !== undefined) {
+                if (typeof inputObject.highlightClass === 'string' && inputObject.highlightClass.length > 0) {
                     var classData = inputObject.highlightClass.split(' ');
                     try {
                         for (var classData_1 = __values(classData), classData_1_1 = classData_1.next(); !classData_1_1.done; classData_1_1 = classData_1.next()) {
@@ -115,7 +99,7 @@ var HighlightJS = /** @class */ (function () {
                         finally { if (e_1) throw e_1.error; }
                     }
                 }
-                if (inputObject.highlightStyle !== undefined) {
+                if ((!isEmpty(inputObject.highlightStyle) && typeof inputObject.highlightStyle === 'object')) {
                     try {
                         for (var _c = __values(Object.keys(inputObject.highlightStyle)), _d = _c.next(); !_d.done; _d = _c.next()) {
                             var i = _d.value;
@@ -131,10 +115,10 @@ var HighlightJS = /** @class */ (function () {
                         finally { if (e_2) throw e_2.error; }
                     }
                 }
-                if (inputObject.highlightStyle === undefined && inputObject.highlightClass === undefined) {
+                if (isEmpty(inputObject.highlightStyle) && isEmpty(inputObject.highlightClass)) {
                     this.highlightTag.style.backgroundColor = '#FFF77D';
                 }
-                if (inputObject.caseSensitive !== undefined && inputObject.caseSensitive) {
+                if (typeof inputObject.caseSensitive === 'boolean' && inputObject.caseSensitive) {
                     this.caseSensitive = true;
                 }
                 this.sanitizeSearchTerm();
@@ -177,17 +161,19 @@ var HighlightJS = /** @class */ (function () {
     HighlightJS.prototype.highlightTagContents = function (node) {
         var i;
         var nodeData = '';
+        var textData;
+        var finalString;
+        var position;
         for (i = 0; i < node.childNodes.length; i++) {
             var n = node.childNodes[i];
             if (n.nodeValue !== null && this.highlightTag !== null) {
-                var textData = n.nodeValue;
+                textData = n.nodeValue;
                 while (i + 1 < node.childNodes.length && node.childNodes[i + 1].nodeValue !== null) {
                     textData += node.childNodes[++i].nodeValue;
                 }
                 var searchResult = (this.caseSensitive) ? textData.search(this.sanitizedSearchTerm) : textData.toLowerCase().search(this.sanitizedSearchTerm.toLowerCase());
                 if (searchResult !== -1) {
-                    var finalString = '';
-                    var position = void 0;
+                    finalString = '';
                     while (true) {
                         position = (this.caseSensitive) ? textData.indexOf(this.searchTerm) : textData.toLowerCase().indexOf(this.searchTerm.toLowerCase());
                         if (position === -1) {
@@ -196,6 +182,7 @@ var HighlightJS = /** @class */ (function () {
                         this.highlightTag.textContent = textData.substr(position, this.searchTerm.length);
                         finalString += textData.substr(0, position) + this.highlightTag.outerHTML;
                         textData = textData.substr(position + this.searchTerm.length);
+                        this._count++;
                     }
                     finalString += textData;
                     nodeData += finalString;
@@ -218,6 +205,32 @@ var HighlightJS = /** @class */ (function () {
             }
         });
         this._count = 0;
+    };
+    HighlightJS.prototype.disableCtrlFandFocusCustomInput = function (input) {
+        if (input === void 0) { input = true; }
+        if (input !== false && !this.isShortcutEventListener) {
+            this.shortcutEventListener = window.addEventListener('keydown', function (event) {
+                if (event.code === 'F3' || ((event.ctrlKey || event.metaKey) && event.code === 'KeyF')) {
+                    event.preventDefault();
+                    if (typeof input === 'string' && input.length > 0) {
+                        var identifier = document.getElementById((input[0] === '#') ? input.substr(1) : input);
+                        if (identifier) {
+                            identifier.focus();
+                        }
+                        else {
+                            console.error('Invalid ID given for focussing input tag');
+                        }
+                    }
+                }
+            });
+            this.isShortcutEventListener = true;
+        }
+        else {
+            if (this.isShortcutEventListener) {
+                window.removeEventListener('keydown', this.shortcutEventListener);
+                this.isShortcutEventListener = false;
+            }
+        }
     };
     return HighlightJS;
 }());
