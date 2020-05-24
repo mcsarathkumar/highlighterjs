@@ -1,13 +1,16 @@
-interface highlightInput {
-    selector: string;
+interface HighlightJSInterface {
     searchTerm: string;
+    selector?: string;
     highlightClass?: string;
     highlightStyle?: object;
     caseSensitive?: boolean;
     debounceTime?: number;
 }
+declare function isUndefined(params: any): boolean;
+declare function isNull(params: any): boolean;
+declare function isEmpty(params: any): boolean;
 declare const highlightClassIdentifier: string;
-declare class HighlightJS implements highlightInput {
+declare class HighlightJS implements HighlightJSInterface {
     previousKeyStrokeMilliSecs: number;
     currentSearchTerm: string;
     selector: string;
@@ -18,17 +21,17 @@ declare class HighlightJS implements highlightInput {
     debounceTime: number;
     shortcutEventListener: any;
     isShortcutEventListener: boolean;
-    _count: number;
+    private _count;
     validInputData: boolean;
     specialCharacters: string;
-    constructor();
     get count(): number;
-    disableBrowserShortcutForFind(disable?: boolean): void;
-    highlight(inputObject: highlightInput, recallAfterDebounce?: boolean): void;
-    init(inputObject: highlightInput): void;
+    constructor();
+    highlight(inputObject: HighlightJSInterface, recallAfterDebounce?: boolean): void;
+    init(inputObject: HighlightJSInterface): void;
     sanitizeSearchTerm(): void;
     currentNode(nodes: any): void;
     highlightTagContents(node: any): void;
     resetContent(sourceData: HTMLElement): void;
+    disableCtrlFandFocusCustomInput(input?: string | boolean): void;
 }
 declare let hlJS: any, hljs: any, $hlJS: any, $hljs: any;
