@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/mcsarathkumar/highlightjs/issues"
   },
-  "homepage": "https://github.com/mcsarathkumar/highlightjs#readme"
+  "homepage": "https://github.com/mcsarathkumar/highlightjs#readme",
+  "publishConfig": {
+    "registry": ["https://npm.pkg.github.com/"]
+  }
 }
